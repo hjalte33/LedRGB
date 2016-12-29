@@ -1,8 +1,7 @@
 
 #include <IRremote.h>
 #include <Arduino.h>
-#include "datastructures.h"
-#include "translateIR.cpp"
+#include "RGB.h"
 
 int recvPin = 3;
 IRrecv irrecv(recvPin);
@@ -13,22 +12,13 @@ int redPin = 6;
 int greenPin = 10;
 int bluePin = 9;
 
-RGB myLed;
+RGB myLed(6, 10, 9) ;
 
-
-void updateLed (RGB* led) {
-  analogWrite(redPin,   led->red  *(led->brightness/255.));
-  analogWrite(greenPin, led->green*(led->brightness/255.));
-  analogWrite(bluePin,  led->blue *(led->brightness/255.));
-}
 
 void setup() {
-  pinMode(redPin, OUTPUT);
-  pinMode(greenPin, OUTPUT);
-  pinMode(bluePin, OUTPUT);
   Serial.begin(115200);
   irrecv.enableIRIn(); // enable input from IR receiver
-  updateLed(&myLed);
+  myLed.update();
 
 }
 
@@ -61,22 +51,12 @@ void translateIR(){
   
     case 0xFFE01F:  
       Serial.println(" VOL-           "); 
-      if (myLed.brightness >= 10){
-        myLed.brightness -= 10;
-      }
-      else{
-        myLed.brightness = 0;
-      }
+      myLed.adjust_brightness(-10);
       break;
   
     case 0xFFA857:  
       Serial.println(" VOL+           "); 
-      if (myLed.brightness <= 245){
-        myLed.brightness += 10;
-      }
-      else{
-        myLed.brightness = 255;
-      }
+      myLed.adjust_brightness(10);
       break;
   
     case 0xFF906F:  
@@ -85,7 +65,7 @@ void translateIR(){
   
     case 0xFF6897:  
       Serial.println(" 0              ");
-      myLed.brightness == 255; 
+//      myLed.brightness = 255; 
       break;
   
     case 0xFF9867:  
@@ -135,6 +115,7 @@ void translateIR(){
     case 0xFFFFFFFF:  
       Serial.println(" Repeat         ");
       signals = lastSignal ;
+      delay(100);
       translateIR();
       break;
     
@@ -143,13 +124,13 @@ void translateIR(){
       Serial.print(signals.value, HEX);
   }
   lastSignal = signals;
-  delay(100);
+  delay(10);
 }
 
 void loop() {
   if (irrecv.decode(&signals)){ // have we received an IR signal?
     translateIR();
-    updateLed(&myLed);
+    myLed.update();
     irrecv.resume();
   } 
     
