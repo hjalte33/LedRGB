@@ -4,3 +4,16 @@ typedef struct{
   byte blue  = 255;
   byte brightness = 255;
 }RGB;
+
+/* 
+class RGB (){
+  public:
+    RGB(int pin);
+    void 
+  private:
+    
+  
+}
+*/
+
+
