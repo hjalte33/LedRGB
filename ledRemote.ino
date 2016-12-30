@@ -1,3 +1,13 @@
+/*
+  Remotecontrolled RGB diode
+  Requileh libraries # IRremote Arduino Library fourd on http://z3t0.github.io/Arduino-IRremote/
+  It uses the RGB class found in RGB.h
+  
+  Created by Hjalte Nielsen 12 2016.
+  Github: https://github.com/hjalte33/ledRemote.git
+  Demo video on https://youtu.be/jiGEJYM5Z0I
+*/
+
 
 #include <IRremote.h>
 #include <Arduino.h>
@@ -12,16 +22,19 @@ int redPin = 6;
 int greenPin = 10;
 int bluePin = 9;
 
+// Object of the RGB class. see RGB.h and RGB.cpp for further info.
+// The numbers are pin numbers for red green and blue.
 RGB myLed(6, 10, 9) ;
+
 
 
 void setup() {
   Serial.begin(115200);
   irrecv.enableIRIn(); // enable input from IR receiver
-  myLed.update();
-
+  myLed.update(); // let there be light from the beginning 
 }
 
+// Look at the receved remote control signal and decide what to do.
 void translateIR(){
   switch(signals.value){
 
@@ -39,10 +52,12 @@ void translateIR(){
   
     case 0xFF22DD:  
       Serial.println(" PREV           "); 
+      myLed.toggle_mode(-1); 
       break;
   
     case 0xFF02FD:  
-      Serial.println(" NEXT           "); 
+      Serial.println(" NEXT           ");
+      myLed.toggle_mode(1); 
       break;
   
     case 0xFFC23D:  
@@ -65,57 +80,77 @@ void translateIR(){
   
     case 0xFF6897:  
       Serial.println(" 0              ");
-//      myLed.brightness = 255; 
+      myLed.set_brightness(255); 
       break;
   
     case 0xFF9867:  
       Serial.println(" 100+           "); 
+      myLed.adjust_blink_speed(-100);
       break;
   
     case 0xFFB04F:  
       Serial.println(" 200+           "); 
+      myLed.adjust_blink_speed(100);
       break;
   
     case 0xFF30CF:  
       Serial.println(" 1              "); 
+      myLed.set_color(0xFF0000);
+      myLed.update();
       break;
   
     case 0xFF18E7:  
       Serial.println(" 2              "); 
+      myLed.set_color(0x00FF00);
+      myLed.update();
       break;
   
     case 0xFF7A85:  
       Serial.println(" 3              "); 
+      myLed.set_color(0x0000FF);
+      myLed.update();
       break;
   
     case 0xFF10EF:  
       Serial.println(" 4              "); 
+      myLed.set_color(0xFFFF00);
+      myLed.update();
       break;
   
     case 0xFF38C7:  
       Serial.println(" 5              "); 
+      myLed.set_color(0xFF00FF);
+      myLed.update();
       break;
   
     case 0xFF5AA5:  
       Serial.println(" 6              "); 
+      myLed.set_color(0x00FFFF);
+      myLed.update();
       break;
   
     case 0xFF42BD:  
       Serial.println(" 7              "); 
+      myLed.set_color(0xFF7710);
+      myLed.update();
       break;
   
     case 0xFF4AB5:  
       Serial.println(" 8              "); 
+      myLed.set_color(0x0077FF);
+      myLed.update();
       break;
   
     case 0xFF52AD:  
       Serial.println(" 9              "); 
+      myLed.set_color(0xFFFFFF);
+      myLed.update();
       break;
     
     case 0xFFFFFFFF:  
       Serial.println(" Repeat         ");
+      delay(50);
       signals = lastSignal ;
-      delay(100);
       translateIR();
       break;
     
@@ -124,16 +159,16 @@ void translateIR(){
       Serial.print(signals.value, HEX);
   }
   lastSignal = signals;
-  delay(10);
 }
 
+// listen for remote signal and update the led. 
 void loop() {
   if (irrecv.decode(&signals)){ // have we received an IR signal?
     translateIR();
-    myLed.update();
     irrecv.resume();
   } 
-    
+  myLed.update();
+
 }
 
 
