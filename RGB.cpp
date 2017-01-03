@@ -10,8 +10,12 @@
 #include "Arduino.h"
 #include "RGB.h"
 
+
+
 //constructer
-RGB::RGB(int redPin, int greenPin, int bluePin){
+RGB::RGB(int redPin, int greenPin, int bluePin)
+: brightness(3)// define the array index that is the brightness
+{
   _pins[0] = redPin;
   _pins[1] = greenPin;
   _pins[2] = bluePin;
@@ -31,28 +35,26 @@ void RGB::update(){
       blinking();
       break;
     case 2 :
-      fadeing();
-      break;
+      fadeing();  
     default:
       updateLed();
       break;
     } 
 }
 
+
 // set the outputpins to the desired color. 
 void RGB::updateLed(){
-  for (int i; i < 3 ; i++){
-    unsigned long col = (_color << (8*i)) & 0xFF0000 ;
-    col = (col >> 16) * _brightness/255. ;
-    analogWrite(_pins[i], col); 
+  for (int i=0; i < 3 ; i++){
+    analogWrite(_pins[i], _color[i]*_color[brightness]/255.); 
   }
 }
 
 
 // toggle the mode by the interval variable "change"
 void RGB::toggle_mode(int change){
-  // remember the current color 
-  unsigned long colorBefore = _color;
+  // remember the old color
+  memcpy(_oldColor, _color, 4) ;   
   // check if we exeede the allowed modes. 
   if (_mode + change + 1 > _noOfModes){
     _mode = 0;    
@@ -62,101 +64,159 @@ void RGB::toggle_mode(int change){
   }
   else{
     _mode += change;
-  } 
-  //blink the number of modes
-  _color = 0x000000;
-  updateLed();
+  }
+  set_color(0,0,0);
   delay(250);
-  for (int i; i < _mode + 1; i++){ 
-    _color = 0xFFFFFF;
-    updateLed();
+  //blink the number of modes
+  for (int i=0; i < _mode + 1; i++){ 
+    set_color(255,255,255,255);
     delay(250);
-    _color = 0x000000;
-    updateLed();
+    set_color(0,0,0,0);
     delay(250); 
   }
   delay(300);
   // set color back to what it was before.
-  _color = colorBefore;
+  memcpy(_color, _oldColor, 4);
   updateLed();
 }
 
 
 // Just set a color 
-void RGB::set_color(unsigned long color){
-  _color = color;
+void RGB::set_color(byte red, byte green, byte blue, int luminance){
+  _color[0] = red;
+  _color[1] = green;
+  _color[2] = blue;
+  if (luminance >= 0 && luminance <= 255){
+    _color[3] = luminance;
+  }  
+  updateLed();
+}
+
+// just set a color with an array 
+void RGB::set_color(byte color[], bool hasLuminance){
+  if (hasLuminance){
+    memcpy(_color, color, 4); 
+  }
+  else{
+    memcpy(_color, color, 3);
+  } 
   updateLed();
 }
 
 // adjust the global brightness by a sutain amount.
 void RGB::adjust_brightness(int amount){
-   if (_brightness + amount < 1){
-    _brightness = 1;
+   if (_color[brightness] + amount < 1){
+    _color[brightness] = 1;
    }
-  else if (_brightness + amount > 255){
-    _brightness = 255 ;
+  else if (_color[brightness] + amount > 255){
+    _color[brightness] = 255 ;
   } 
   else{
-    _brightness = _brightness + amount ; 
+    _color[brightness] = _color[brightness] + amount ; 
   }
 }
 
 
 // set a specific brightness 
-void RGB::set_brightness(byte brightness){
-  if (brightness < 0){
-    _brightness = 0;
+void RGB::set_brightness(byte newBrightness){
+  if (newBrightness < 0){
+    _color[brightness] = 0;
    }
-  else if (brightness > 255){
-    _brightness = 255 ;
+  else if (newBrightness > 255){
+    _color[brightness] = 255 ;
   } 
   else{
-    _brightness = brightness; 
+    _color[brightness] = newBrightness; 
   }
 }
 
-// blink the Led with a sutain interval 
-void RGB::blinking(){
-  if (_oldTime + _blink_speed < millis()){
-    if (_color == 0x000000){
-      _color = _oldColor;
-      updateLed();
-    }
-    else{ 
-      _oldColor = _color;
-      _color = 0x000000;
-      updateLed();    
-    }
-    _oldTime = millis();
-    
-  }  
-}
 
-//addjust the blink speed with a sutain amount
-void RGB::adjust_blink_speed(float amount){
-   if (_blink_speed + amount < 100){
-    _blink_speed = 100;
-   }
-  else if (_blink_speed + amount > 3000){
-    _blink_speed = 3000 ;
+
+// blink the Led between two or up to 10 different colors a sutain interval 
+void RGB::blinking(){
+  if (_oldTime + _blinkSpeed < millis()){    
+    if (_oldColorIndex < _noOfOldColors - 1){
+      memcpy(_oldColors[_oldColorIndex], _color, 4);
+      _oldColorIndex ++ ;
+      set_color(_oldColors[_oldColorIndex], true);
+    }
+    else{
+      memcpy(_oldColors[_oldColorIndex], _color, 4);
+      _oldColorIndex = 0 ;
+      set_color(_oldColors[_oldColorIndex], true);
+    }
+    _oldTime = millis();  
   } 
   else{
-    _blink_speed = _blink_speed + amount ; 
+    updateLed();
+    delay(10); 
+  }
+}
+
+
+//addjust the blink speed with a sutain amount
+void RGB::adjust_noOfOldColors(float amount){
+   if (_noOfOldColors + amount < 2){
+    _noOfOldColors = 2;  // remember that we count from 0 so this is 2 colors.
+   }
+  else if (_noOfOldColors + amount > 10){
+    _noOfOldColors = 10 ;
+  } 
+  else{
+    _noOfOldColors = _noOfOldColors + amount ; 
+  }
+ delay(500);
+}
+
+
+
+
+
+//addjust the blink speed with a sutain amount
+void RGB::adjust_blinkSpeed(float amount){
+   if (_blinkSpeed + amount < 10){
+    _blinkSpeed = 10;
+   }
+  else if (_blinkSpeed + amount > 5000){
+    _blinkSpeed = 5000 ;
+  } 
+  else{
+    _blinkSpeed = _blinkSpeed + amount ; 
   }
  
 }
 
 
-// fade the led at random colors at a random phase. 
+// fade the led at the colors specifyed in the blining mode. 
 void RGB::fadeing(){
-
-  _color = 0x000000;
-  for (int i; i < 3; i++){
-    long var = (sin(millis()*0.0005 + i*(sin(millis()*0.00001))*3.14) * 127) ; //secret fade fuction I created ;)
-    _color += ((long(var+127))<< i*8); 
+  if ( millis() > _oldTime + _blinkSpeed/100.){
+        if (_fadeCurve == 255){
+          _fadeCurve = 0;
+          if(_oldColorIndex + 1 == _noOfOldColors){ 
+            _oldColorIndex = 0;
+          }
+          else{
+            _oldColorIndex ++;
+          }
+        }
+        else{
+          _fadeCurve ++; 
+        }    
+        byte newColor [4] ;
+        if (_oldColorIndex + 1 < _noOfOldColors){
+          for (int i = 0; i < 4; i++){
+              newColor[i] = ((255 - _fadeCurve)/255.) * _oldColors[_oldColorIndex][i] + (_fadeCurve/255.)* _oldColors[_oldColorIndex + 1][i] ;
+          } 
+        }
+        else{
+          for (int i = 0; i < 4; i++){
+              newColor[i] = ((255 - _fadeCurve)/255.) * _oldColors[_oldColorIndex][i] + (_fadeCurve/255.)* _oldColors[0][i] ;
+          }
+        }
+        set_color(newColor, true);
+        _oldTime = millis();
   }
   
-  updateLed();
 }
 
 

@@ -38,127 +38,122 @@ void setup() {
 void translateIR(){
   switch(signals.value){
 
-    case 0xFFA25D:  
+    case 0xFFA25D:{  
       Serial.println(" CH-            "); 
+      myLed.adjust_noOfOldColors(-1);
       break;
-  
-    case 0xFF629D:  
+    }
+    case 0xFF629D:{  
       Serial.println(" CH             "); 
       break;
-  
-    case 0xFFE21D:  
+    }
+    case 0xFFE21D: { 
       Serial.println(" CH+            "); 
+      myLed.adjust_noOfOldColors(1);
       break;
-  
-    case 0xFF22DD:  
+    }
+    case 0xFF22DD:{  
       Serial.println(" PREV           "); 
       myLed.toggle_mode(-1); 
       break;
-  
-    case 0xFF02FD:  
+    }
+    case 0xFF02FD:{  
       Serial.println(" NEXT           ");
       myLed.toggle_mode(1); 
       break;
-  
-    case 0xFFC23D:  
+    }
+    case 0xFFC23D:{  
       Serial.println(" PLAY/PAUSE     "); 
       break;
-  
-    case 0xFFE01F:  
+    }
+    case 0xFFE01F:{  
       Serial.println(" VOL-           "); 
       myLed.adjust_brightness(-10);
       break;
-  
-    case 0xFFA857:  
+    }
+    case 0xFFA857: {
       Serial.println(" VOL+           "); 
       myLed.adjust_brightness(10);
       break;
-  
-    case 0xFF906F:  
+    }
+    case 0xFF906F:{  
       Serial.println(" EQ             "); 
       break;
-  
-    case 0xFF6897:  
+    }
+    case 0xFF6897:{  
       Serial.println(" 0              ");
       myLed.set_brightness(255); 
       break;
-  
-    case 0xFF9867:  
+    }
+    case 0xFF9867:{ 
       Serial.println(" 100+           "); 
-      myLed.adjust_blink_speed(-100);
+      myLed.adjust_blinkSpeed(-10);
       break;
-  
-    case 0xFFB04F:  
+    }
+    case 0xFFB04F:{  
       Serial.println(" 200+           "); 
-      myLed.adjust_blink_speed(100);
+      myLed.adjust_blinkSpeed(10);
       break;
-  
-    case 0xFF30CF:  
-      Serial.println(" 1              "); 
-      myLed.set_color(0xFF0000);
-      myLed.update();
+    }
+    case 0xFF30CF:{  
+      Serial.println(" 1              ");
+      myLed.set_color(255,0,0);
       break;
-  
-    case 0xFF18E7:  
+    }
+    case 0xFF18E7: {
       Serial.println(" 2              "); 
-      myLed.set_color(0x00FF00);
-      myLed.update();
+     
+      myLed.set_color(0,255,0);
       break;
-  
-    case 0xFF7A85:  
+    }
+    case 0xFF7A85:{  
       Serial.println(" 3              "); 
-      myLed.set_color(0x0000FF);
-      myLed.update();
+      myLed.set_color(0,0,255);
       break;
-  
-    case 0xFF10EF:  
+    }
+    case 0xFF10EF: { 
       Serial.println(" 4              "); 
-      myLed.set_color(0xFFFF00);
-      myLed.update();
+      myLed.set_color(255,255,0);
       break;
-  
-    case 0xFF38C7:  
+    }
+    case 0xFF38C7:{  
       Serial.println(" 5              "); 
-      myLed.set_color(0xFF00FF);
-      myLed.update();
+      myLed.set_color(255,0,255);
       break;
-  
-    case 0xFF5AA5:  
+    }
+    case 0xFF5AA5:{  
       Serial.println(" 6              "); 
-      myLed.set_color(0x00FFFF);
-      myLed.update();
+      myLed.set_color(0,255,255);
       break;
-  
-    case 0xFF42BD:  
+    }
+    case 0xFF42BD:{  
       Serial.println(" 7              "); 
-      myLed.set_color(0xFF7710);
-      myLed.update();
+      myLed.set_color(255,127,0);
       break;
-  
-    case 0xFF4AB5:  
+    }
+    case 0xFF4AB5:{  
       Serial.println(" 8              "); 
-      myLed.set_color(0x0077FF);
-      myLed.update();
+      myLed.set_color(255,255,255);
       break;
-  
-    case 0xFF52AD:  
+    }
+    case 0xFF52AD:{  
       Serial.println(" 9              "); 
-      myLed.set_color(0xFFFFFF);
-      myLed.update();
+      myLed.set_color(0,0,0);
       break;
-    
-    case 0xFFFFFFFF:  
+    }
+    case 0xFFFFFFFF:{  
       Serial.println(" Repeat         ");
       delay(50);
       signals = lastSignal ;
       translateIR();
       break;
-    
+    }
     default: 
       Serial.println(" other button   ");
       Serial.print(signals.value, HEX);
   }
   lastSignal = signals;
+  myLed.update();
 }
 
 // listen for remote signal and update the led. 
