@@ -1,0 +1,8 @@
+RGB	KEYWORD1
+toggle_mode	KEYWORD2
+set_color	KEYWORD2
+adjust_brightness	KEYWORD2
+set_brightness	KEYWORD2
+adjust_blinkSpeed	KEYWORD2
+adjust_noOfOldColors	KEYWORD2
+update	KEYWORD2
